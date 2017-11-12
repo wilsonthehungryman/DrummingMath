@@ -1,0 +1,15 @@
+version: '2'
+services:
+  nginx:
+    image: nginx:1.11.10-alpine
+    ports:
+      - 3000:80
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+  web:
+    build: .
+    ports:
+      - 9000:9000
+    volumes:
+      - .:/app
+      - /app/vendor
