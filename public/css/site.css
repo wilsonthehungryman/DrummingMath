@@ -1,0 +1,10 @@
+#menu li{
+  list-style-type: none;
+  display: inline-block;
+  font-size: 2em;
+  border: 2em black single;
+}
+
+body {
+  background-color: hsla(140, 5%, 64%, 0.56);
+}
