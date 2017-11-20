@@ -29,10 +29,11 @@ var scale = {
 
   bar: {
     //calc
-    length:0,
+    width:0,
     fontSize:0,
     lineSpacing:0,
-    topLine:0
+    topLine:0,
+    bottomLine:0
   },
 
   note: {
@@ -61,8 +62,6 @@ function change(){
   scale.bar.lineSpacing = parseInt($('#lineSpacing')[0].value);
   scale.bar.fontSize = parseInt($('#fontSize')[0].value);
 
-  // lineHeight = 30; // or bar line spacing
-
   init();
 }
 
@@ -71,10 +70,12 @@ function init(){
   // canvas.width = scale.canvas.width;
   // canvas.height = scale.canvas.length;
 
-  scale.line.height = scale.bar.fontSize * 4 + scale.bar.lineSpacing * 14;  //(scale.canvas.height - (2 * scale.canvas.paddingTop)) / scale.linesPerPage;
-  scale.bar.topLine = (scale.bar.fontSize * 2) + (scale.bar.lineSpacing * 3);
+  scale.line.height = scale.bar.fontSize * 2 + scale.bar.lineSpacing * 14;  //(scale.canvas.height - (2 * scale.canvas.paddingTop)) / scale.linesPerPage;
+  scale.bar.topLine = (scale.bar.fontSize) + (scale.bar.lineSpacing * 4);
+  scale.bar.bottomLine = scale.bar.topLine + (scale.bar.lineSpacing * 8);
   scale.line.width  = scale.canvas.width - (2 * scale.canvas.paddingLeft);
   scale.line.padding = ((scale.canvas.height - (2 * scale.canvas.paddingTop)) - (scale.linesPerPage * scale.line.height)) / (scale.linesPerPage -1); //(scale.canvas.height - (scale.linesPerPage * scale.line.height) - scale.line.height) / (scale.linesPerPage - 1);
+  scale.bar.width = scale.line.width / scale.barsPerLine;
 
   ctx = canvas.getContext('2d');
   defaultPaint();
@@ -87,25 +88,34 @@ function defaultPaint(){
 
   var x = scale.canvas.paddingLeft;
   var y = scale.canvas.paddingTop;
-  console.log(  '.....');
   for(var lineCount = 0; lineCount < scale.linesPerPage; lineCount++){
-    console.log('outs x: ' + x + " y: " + y);
     drawLine(x, y);
+    drawBarLines(x, y);
     y = calculateNextStart(y);
   }
 }
 
 function drawLine(x, y){
-  console.log('ins x: ' + x + " y: " + y);
   var xEnd = x + scale.line.width;
-  var yStart = y;
   ctx.beginPath();
   y = y + scale.bar.topLine;
   for(var i = 0; i < 5; i++){
     ctx.moveTo(x, y);
     ctx.lineTo(xEnd, y);
-    y += scale.bar.lineSpacing;
-    console.log('x: ' + x + " y: " + y);
+    y += scale.bar.lineSpacing * 2;
+  }
+  ctx.stroke();
+  ctx.closePath();
+}
+
+function drawBarLines(x, y){
+  var yStart = y + scale.bar.topLine;
+  var yEnd = y + scale.bar.bottomLine;
+  ctx.beginPath();
+  for(var i = 0; i <= scale.barsPerLine; i++){
+    ctx.moveTo(x, yStart);
+    ctx.lineTo(x, yEnd);
+    x += scale.bar.width;
   }
   ctx.stroke();
   ctx.closePath();
