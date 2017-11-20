@@ -8,8 +8,9 @@
   Bars per line: <input id="barsPerLine" type="number" value="4" /><br />
   Left and Right margin: <input id="paddingLeft" type="number" value="10" /><br />
   Top and bottom margin: <input id="paddingTop" type="number" value="15" /><br />
-  Line spacing: <input id="lineSpacing" type="number" value="1" /><br />
-  Font size: <input id="fontSize" type="number" value="2" /><br />
+  Line spacing: <input id="lineSpacing" type="number" value="10" /><br />
+  Font size: <input id="fontSize" type="number" value="10" /><br />
+  <input type="button" onclick="change()" /><br />
 </form>
 <canvas id='canvas' width="800" height="1120">
   <h3>Canvas is not supported :(</h3>
