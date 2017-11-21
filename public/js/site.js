@@ -45,7 +45,9 @@ var scale = {
 
 $(document).ready(function(){
   console.log('ok');
-  change();
+  if($('#canvas').length > 0){
+    change();
+  }
 });
 
 function change(){
