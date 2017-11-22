@@ -8,3 +8,7 @@
 body {
   background-color: hsla(140, 5%, 64%, 0.56);
 }
+
+#canvas {
+  display: block;
+}
