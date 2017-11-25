@@ -32,18 +32,49 @@ var scale = {
     width:0,
     fontSize:0,
     lineSpacing:0,
+
     topLine:0,
-    bottomLine:0
+    bottomLine:0,
+    accentBox:null,
+    stickingBox:null,
+    lineBox:null,
+    starts:{
+      space:0,
+      accent:0,
+      lines:[],
+      middle:0,
+      sticking:0
+    },
+
+    lines:0,
+    spaces:0,
+    spacePadding:true,
+    sticking:true,
+    accent:true,
+
+    total:0,
+    calc:function() {
+      this.total = this.spaces * this.lineSpacing + this.lines * this.lineSpacing;
+      if(this.accent){
+        this.total += this.fontSize;
+        this.accentBox = function(x, y){ return { left:x, top:y + this.accentStart, right:x + this.width, bottom:y + this.accentStart + scale.bar.fontSize }; }
+      }else{
+        this.accentBox = function(){ return null; };
+      }
+      if(this.sticking){
+        this.total += this.fontSize;
+      }
+    }
   },
 
   note: {
     //calc
     width:0,
-    height:0,
-    accentStart:0,
-    stickingStart:0,
-    accentBox:function(x, y){ return { left:x, top:y + this.accentStart, right:x + this.width, bottom:y + this.accentStart + scale.bar.fontSize }; },
-    stickingBox:function(x, y){ return { left:x, top:y + this.stickingStart, right:x + this.width, bottom:y + this.stickingStart + scale.bar.fontSize }; }
+    // height:0,
+    // accentStart:0,
+    // stickingStart:0,
+    // accentBox:function(x, y){ return { left:x, top:y + this.accentStart, right:x + this.width, bottom:y + this.accentStart + scale.bar.fontSize }; },
+    // stickingBox:function(x, y){ return { left:x, top:y + this.stickingStart, right:x + this.width, bottom:y + this.stickingStart + scale.bar.fontSize }; }
   }
 
 };
@@ -91,6 +122,9 @@ function change(){
 
   scale.bar.lineSpacing = parseInt($('#lineSpacing')[0].value);
   scale.bar.fontSize = parseInt($('#fontSize')[0].value);
+
+  // replace with input
+
 
   init();
 }
