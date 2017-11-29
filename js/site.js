@@ -30,51 +30,92 @@ var scale = {
   bar: {
     //calc
     width:0,
+    height:0,
     fontSize:0,
+    accentSize:0,
     lineSpacing:0,
 
-    topLine:0,
-    bottomLine:0,
-    accentBox:null,
-    stickingBox:null,
-    lineBox:null,
     starts:{
-      space:0,
+      // space:0,
+      stem:0,
       accent:0,
-      lines:[],
-      middle:0,
-      sticking:0
+      lines:0,
+      sticking:0,
+      line:null,
+      visibleLine:0
     },
-
-    lines:0,
-    spaces:0,
-    spacePadding:true,
+    ends:{
+      // space:0,
+      stem:0,
+      accent:0,
+      lines:0,
+      sticking:0,
+      line:null
+    },
+    boxs:{
+      // space:0,
+      stem:0,
+      accent:0,
+      lines:0,
+      sticking:0,
+      line:null
+    },
+    barNotes:0,
+    // spacePadding:true,
     sticking:true,
     accent:true,
+    numberOfLines:5,
+    actualLineLocation:null
 
-    total:0,
-    calc:function() {
-      this.total = this.spaces * this.lineSpacing + this.lines * this.lineSpacing;
-      if(this.accent){
-        this.total += this.fontSize;
-        this.accentBox = function(x, y){ return { left:x, top:y + this.accentStart, right:x + this.width, bottom:y + this.accentStart + scale.bar.fontSize }; }
-      }else{
-        this.accentBox = function(){ return null; };
-      }
-      if(this.sticking){
-        this.total += this.fontSize;
-      }
-    }
+    // calc:function() {
+    //   // for symmetry
+    //   if(this.barNotes % 2 === 0){
+    //     this.barNotes++;
+    //   }
+    //   this.starts.accent = 0;
+    //   this.ends.accent = (this.accent) ? this.accentSize : 0;
+    //
+    //   this.starts.stem = this.ends.accent;
+    //   this.ends.stem = this.starts.stem + this.lineSpacing;
+    //
+    //   this.starts.lines = this.ends.stem;
+    //   this.ends.lines = this.starts.lines + this.barNotes * this.lineSpacing;
+    //
+    //   this.starts.sticking = this.ends.lines;
+    //   this.ends.sticking = this.starts.sticking + this.fontSize;
+    //   this.height = this.ends.sticking;
+    //   this.starts.line = (i) => {
+    //     // middle is 0 (ie, 2,1,0,-1,-2)
+    //     i = (i - this.barNotes) * -1;
+    //     return this.starts.lines + this.lineSpacing * i;
+    //   };
+    //
+    //   this.ends.line = (i) => {
+    //     // middle is 0 (ie, 2,1,0,-1,-2)
+    //     i = (i - this.barNotes) * -1;
+    //     return this.starts.lines + this.lineSpacing * (i + 1);
+    //   };
+    //   this.total = this.spaces * this.lineSpacing + this.lines * this.lineSpacing;
+    //   if(this.accent){
+    //     this.total += this.fontSize;
+    //     this.accentBox = function(x, y){ return { left:x, top:y + this.accentStart, right:x + this.width, bottom:y + this.accentStart + scale.bar.fontSize }; }
+    //   }else{
+    //     this.accentBox = function(){ return null; };
+    //   }
+    //   if(this.sticking){
+    //     this.total += this.fontSize;
+    //   }
+    //}
   },
 
   note: {
     //calc
     width:0,
-    // height:0,
-    // accentStart:0,
-    // stickingStart:0,
-    // accentBox:function(x, y){ return { left:x, top:y + this.accentStart, right:x + this.width, bottom:y + this.accentStart + scale.bar.fontSize }; },
-    // stickingBox:function(x, y){ return { left:x, top:y + this.stickingStart, right:x + this.width, bottom:y + this.stickingStart + scale.bar.fontSize }; }
+    height:0,
+    //accentStart:0,
+    //stickingStart:0,
+    //accentBox:function(x, y){ return { left:x, top:y + this.accentStart, right:x + this.width, bottom:y + this.accentStart + scale.bar.fontSize }; },
+    //stickingBox:function(x, y){ return { left:x, top:y + this.stickingStart, right:x + this.width, bottom:y + this.stickingStart + scale.bar.fontSize }; }
   }
 
 };
@@ -84,6 +125,18 @@ var sticking = {
   L:2,
   N:0,
   None:0
+}
+
+function absoluteAccentBox(x, y){
+  var box = { left:x, top:y + scale.bar.starts, right:x+scale.note.width, bottom:y};
+  if(scale.bar.accent === true){
+    box.bottom = y + scale.bar.accentSize;
+  }
+  return box;
+}
+
+function absoluteStemBox(x, y){
+  var box = { left:x, top:y, right:x+scale.note.width, bottom:y};
 }
 
 // function Bar(){
@@ -124,7 +177,12 @@ function change(){
   scale.bar.fontSize = parseInt($('#fontSize')[0].value);
 
   // replace with input
+  scale.bar.accentSize = scale.bar.fontSize;
 
+  scale.bar.barNotes = 5 + 4;
+  scale.bar.accents = true;
+  scale.bar.sticking = true;
+  scale.bar.numberOfLines = 5;
 
   init();
 }
@@ -134,16 +192,53 @@ function init(){
   // canvas.width = scale.canvas.width;
   // canvas.height = scale.canvas.length;
 
-  scale.line.height = scale.bar.fontSize * 2 + scale.bar.lineSpacing * 14;  //(scale.canvas.height - (2 * scale.canvas.paddingTop)) / scale.linesPerPage;
-  scale.bar.topLine = (scale.bar.fontSize) + (scale.bar.lineSpacing * 4);
-  scale.bar.bottomLine = scale.bar.topLine + (scale.bar.lineSpacing * 8);
+  //scale.line.height = scale.bar.fontSize * 2 + scale.bar.lineSpacing * 14;  //(scale.canvas.height - (2 * scale.canvas.paddingTop)) / scale.linesPerPage;
+  //scale.bar.topLine = (scale.bar.fontSize) + (scale.bar.lineSpacing * 4);
+  //scale.bar.bottomLine = scale.bar.topLine + (scale.bar.lineSpacing * 8);
   scale.line.width  = scale.canvas.width - (2 * scale.canvas.paddingLeft);
   scale.line.padding = ((scale.canvas.height - (2 * scale.canvas.paddingTop)) - (scale.linesPerPage * scale.line.height)) / (scale.linesPerPage -1); //(scale.canvas.height - (scale.linesPerPage * scale.line.height) - scale.line.height) / (scale.linesPerPage - 1);
   scale.bar.width = scale.line.width / scale.barsPerLine;
+
   scale.note.width = scale.bar.width / NOTES_PER_BAR;
-  scale.note.height = scale.line.height;
-  scale.note.accentStart = scale.bar.lineSpacing;
-  scale.note.stickingStart = (scale.bar.lineSpacing * 14) + scale.bar.fontSize;
+  // scale.note.height = scale.line.height;
+  // scale.note.accentStart = scale.bar.lineSpacing;
+  // scale.note.stickingStart = (scale.bar.lineSpacing * 14) + scale.bar.fontSize;
+
+  if(scale.bar.barNotes % 2 === 0){
+    scale.bar.barNotes++;
+  }
+
+  scale.bar.starts.accent = 0;
+  scale.bar.ends.accent = (scale.bar.accent) ? scale.bar.accentSize : 0;
+
+  scale.bar.starts.stem = scale.bar.ends.accent;
+  scale.bar.ends.stem = scale.bar.starts.stem + scale.bar.lineSpacing;
+
+  scale.bar.starts.lines = scale.bar.ends.stem;
+  scale.bar.ends.lines = scale.bar.starts.lines + scale.bar.barNotes * scale.bar.lineSpacing;
+
+  scale.bar.starts.sticking = scale.bar.ends.lines;
+  scale.bar.ends.sticking = (scale.bar.sticking) ? scale.bar.starts.sticking + scale.bar.fontSize : scale.bar.starts.sticking;
+  scale.bar.height = scale.bar.ends.sticking;
+  scale.bar.starts.line = (i) => {
+    // middle is 0 (ie, 2,1,0,-1,-2)
+    i = (i - (scale.bar.barNotes / 2 - 0.5)) * -1;
+    return scale.bar.starts.lines + scale.bar.lineSpacing * i;
+  };
+
+  scale.bar.ends.line = (i) => {
+    // middle is 0 (ie, 2,1,0,-1,-2)
+    i = (i - (scale.bar.barNotes / 2 - 0.5)) * -1;
+    return scale.bar.starts.lines + scale.bar.lineSpacing * (i + 1);
+  };
+
+  scale.bar.actualLineLocation = (i) => {
+    i = (i - (scale.bar.barNotes / 2 - 0.5)) * -1;
+    return scale.bar.starts.lines + scale.bar.lineSpacing * i + scale.bar.lineSpacing * 0.5;
+  };
+
+  scale.bar.starts.visibleLine = scale.bar.actualLineLocation(scale.bar.numberOfLines * 2 -1 - scale.bar.numberOfLines); //scale.bar.numberOfLines / 2 - 0.5);
+  scale.bar.ends.visibleLine = scale.bar.actualLineLocation(1 - scale.bar.numberOfLines);
   var px = scale.bar.fontSize;
   // revise for multiple pages
   bars = [];
@@ -333,19 +428,21 @@ function defaultPaint(){
 function drawLine(x, y){
   var xEnd = x + scale.line.width;
   ctx.beginPath();
-  y = y + scale.bar.topLine;
-  for(var i = 0; i < 5; i++){
+  y = y + scale.bar.starts.visibleLine;
+  for(var i = 0; i < scale.bar.numberOfLines; i++){
     ctx.moveTo(x, y);
     ctx.lineTo(xEnd, y);
     y += scale.bar.lineSpacing * 2;
   }
+  console.log('end line y: ' + y);
   ctx.stroke();
   ctx.closePath();
 }
 
 function drawBarLines(x, y){
-  var yStart = y + scale.bar.topLine;
-  var yEnd = y + scale.bar.bottomLine;
+  var yStart = y + scale.bar.starts.visibleLine;
+  var yEnd = y + scale.bar.ends.visibleLine;
+  console.log('s: ' + yStart + ' e: ' + yEnd);
   ctx.beginPath();
   for(var i = 0; i <= scale.barsPerLine; i++){
     ctx.moveTo(x, yStart);
