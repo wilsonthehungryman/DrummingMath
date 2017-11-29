@@ -61,61 +61,16 @@ var scale = {
       line:null
     },
     barNotes:0,
-    // spacePadding:true,
     sticking:true,
     accent:true,
     numberOfLines:5,
     actualLineLocation:null
-
-    // calc:function() {
-    //   // for symmetry
-    //   if(this.barNotes % 2 === 0){
-    //     this.barNotes++;
-    //   }
-    //   this.starts.accent = 0;
-    //   this.ends.accent = (this.accent) ? this.accentSize : 0;
-    //
-    //   this.starts.stem = this.ends.accent;
-    //   this.ends.stem = this.starts.stem + this.lineSpacing;
-    //
-    //   this.starts.lines = this.ends.stem;
-    //   this.ends.lines = this.starts.lines + this.barNotes * this.lineSpacing;
-    //
-    //   this.starts.sticking = this.ends.lines;
-    //   this.ends.sticking = this.starts.sticking + this.fontSize;
-    //   this.height = this.ends.sticking;
-    //   this.starts.line = (i) => {
-    //     // middle is 0 (ie, 2,1,0,-1,-2)
-    //     i = (i - this.barNotes) * -1;
-    //     return this.starts.lines + this.lineSpacing * i;
-    //   };
-    //
-    //   this.ends.line = (i) => {
-    //     // middle is 0 (ie, 2,1,0,-1,-2)
-    //     i = (i - this.barNotes) * -1;
-    //     return this.starts.lines + this.lineSpacing * (i + 1);
-    //   };
-    //   this.total = this.spaces * this.lineSpacing + this.lines * this.lineSpacing;
-    //   if(this.accent){
-    //     this.total += this.fontSize;
-    //     this.accentBox = function(x, y){ return { left:x, top:y + this.accentStart, right:x + this.width, bottom:y + this.accentStart + scale.bar.fontSize }; }
-    //   }else{
-    //     this.accentBox = function(){ return null; };
-    //   }
-    //   if(this.sticking){
-    //     this.total += this.fontSize;
-    //   }
-    //}
   },
 
   note: {
     //calc
     width:0,
     height:0,
-    //accentStart:0,
-    //stickingStart:0,
-    //accentBox:function(x, y){ return { left:x, top:y + this.accentStart, right:x + this.width, bottom:y + this.accentStart + scale.bar.fontSize }; },
-    //stickingBox:function(x, y){ return { left:x, top:y + this.stickingStart, right:x + this.width, bottom:y + this.stickingStart + scale.bar.fontSize }; }
   }
 
 };
@@ -126,8 +81,6 @@ var sticking = {
   N:0,
   None:0
 }
-
-var redrawNotes = false;
 
 function absoluteAccentBox(x, y){
   return { left:x, top:y + scale.bar.starts.accent, right:x+scale.note.width, bottom:y + scale.bar.ends.accent};
@@ -210,17 +163,11 @@ function init(){
   // canvas.width = scale.canvas.width;
   // canvas.height = scale.canvas.length;
 
-  //scale.line.height = scale.bar.fontSize * 2 + scale.bar.lineSpacing * 14;  //(scale.canvas.height - (2 * scale.canvas.paddingTop)) / scale.linesPerPage;
-  //scale.bar.topLine = (scale.bar.fontSize) + (scale.bar.lineSpacing * 4);
-  //scale.bar.bottomLine = scale.bar.topLine + (scale.bar.lineSpacing * 8);
   scale.line.width  = scale.canvas.width - (2 * scale.canvas.paddingLeft);
   scale.line.padding = ((scale.canvas.height - (2 * scale.canvas.paddingTop)) - (scale.linesPerPage * scale.line.height)) / (scale.linesPerPage -1); //(scale.canvas.height - (scale.linesPerPage * scale.line.height) - scale.line.height) / (scale.linesPerPage - 1);
   scale.bar.width = scale.line.width / scale.barsPerLine;
 
   scale.note.width = scale.bar.width / NOTES_PER_BAR;
-  // scale.note.height = scale.line.height;
-  // scale.note.accentStart = scale.bar.lineSpacing;
-  // scale.note.stickingStart = (scale.bar.lineSpacing * 14) + scale.bar.fontSize;
 
   if(scale.bar.barNotes % 2 === 0){
     scale.bar.barNotes++;
@@ -262,33 +209,20 @@ function init(){
   ctx = canvas.getContext('2d');
   ctx.font = "bold " + px + 'px Arial'
   defaultPaint();
-  if(redrawNotes){
+  if(bars.length > 0){
     drawNotes();
   }
 }
 
 function generateAccents(){
-  redrawNotes = true;
   paradidlesAccents();
   console.log('Accents generated');
   drawNotes();
-
 }
 
 function paradidlesAccents(){
   var group = 4;
   var accentGroups = generatePermutations(group);
-
-  // function generate(perm){
-  //   var notes = [];
-  //   for(var i = 0; i < perm.length * 2; i++){
-  //     notes[i] = new Note();
-  //     notes[i].accent = perm[i];
-  //     notes[i].sticking = stickingArray[i];
-  //   }
-  //   return notes;
-  // }
-
 
   var generator = {
     stickingArray:[sticking.R,sticking.L,sticking.R,sticking.R,sticking.L,sticking.R,sticking.L,sticking.L],
@@ -311,13 +245,12 @@ function paradidlesAccents(){
   };
   generateNotes(generator);
 }
-// [group][permutation] = []
+
 function generatePermutations(group){
   var result = [];
   for(var i = 0; i <= group; i++){
     result[i] = [];
   }
-  //var group = 4;
   var total = 2 ** group - 1;
   var current = 0;
   while(current <= total){
@@ -348,23 +281,11 @@ function generateNotes(generator){
     return;
   }
 
-  // var noteCount = 0;
   var notes = [];
-  // var permOut = 0;
-  // var permInner = -1;
   for(var i = 0; i < generator.permutations.length; i++){
     for(var j = 0; j < generator.permutations[i].length; j++){
       notes = notes.concat(generator.generate(generator.permutations[i][j]));
     }
-    // permInner++;
-    // if(permInner === generator.permutations[permOut].length){
-    //   permInner = 0;
-    //   permOut++;
-    //   if(permOut === generator.permutations.length){
-    //     break;
-    //   }
-    // }
-    // noteCount += notes.length;
   }
   console.log(notes);
   for(var i = 0, b = -1; i < notes.length; i++){
@@ -379,7 +300,7 @@ function generateNotes(generator){
 function drawNotes(){
   var x = scale.canvas.paddingLeft;
   var y = scale.canvas.paddingTop;
-  //console.log(bars);
+
   for(var i = 0; i < bars.length && i < scale.barsPerLine * scale.linesPerPage; ){
     for(var j = 0; j < bars[i].length; j++){
       drawNote(x, y, bars[i][j]);
@@ -410,7 +331,6 @@ function drawNote(x, y, note){
   var yCenter = (box.top + box.bottom)/2;
   var radius = (box.right - box.left)/2 * 0.60;
   ctx.arc(xCenter, yCenter, radius, 0, 2*Math.PI);
-  //ctx.arc(box.left, box.top, (box.right - box.left)/2, 0, 2*Math.PI);
   ctx.fill();
   ctx.moveTo(xCenter + radius/2, yCenter);
   var stemBox = absoluteStemBox(x, y);
@@ -485,27 +405,3 @@ function drawBarLines(x, y){
 function calculateNextStart(y){
   return y + scale.line.height + scale.line.padding;
 }
-
-/*
-Note guide
-scale.line.height = scale.bar.fontSize * 2 + scale.bar.lineSpacing * 14;  //(scale.canvas.height - (2 * scale.canvas.paddingTop)) / scale.linesPerPage;
-scale.bar.topLine = (scale.bar.fontSize) + (scale.bar.lineSpacing * 4);
-scale.bar.bottomLine = scale.bar.topLine + (scale.bar.lineSpacing * 8);
-x = fontSize, y = lineSpacing
-space:y
-accent:f
-hiddenLine:y
-hiddenLine:y
-hiddenLine:y
-line:y
-hiddenLine:y
-line:y
-hiddenLine:y
-line:y
-hiddenLine:y
-line:y
-hiddenLine:y
-line:y
-hiddenLine:y
-sticking:f
-*/
