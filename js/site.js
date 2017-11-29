@@ -401,6 +401,24 @@ function drawNote(x, y, note){
   if(note.sticking != sticking.none){
     drawSticking(x, y, note.sticking);
   }
+
+  var box = absoluteNoteBox(x, y, note.position);
+  ctx.fillStyle = '#000000';
+  ctx.beginPath();
+  //ctx.moveTo(box.left, box.right);
+  var xCenter = (box.left + box.right)/2;
+  var yCenter = (box.top + box.bottom)/2;
+  var radius = (box.right - box.left)/2 * 0.60;
+  ctx.arc(xCenter, yCenter, radius, 0, 2*Math.PI);
+  //ctx.arc(box.left, box.top, (box.right - box.left)/2, 0, 2*Math.PI);
+  ctx.fill();
+  ctx.moveTo(xCenter + radius/2, yCenter);
+  var stemBox = absoluteStemBox(x, y);
+  var yMiddle = (stemBox.top + stemBox.bottom) / 2;
+  ctx.lineTo(xCenter + radius/2, yMiddle)
+  ctx.stroke();
+  ctx.closePath();
+
 }
 
 function drawAccent(x, y){
