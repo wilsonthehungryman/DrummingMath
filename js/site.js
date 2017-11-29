@@ -214,36 +214,49 @@ function init(){
   }
 }
 
-function generateAccents(){
-  paradidlesAccents();
+function generateAccents(rudiment){
+  bars = [];
+  defaultPaint();
+  var generator;
+  // change to switch
+  if(rudiment === 'paradidle'){
+    generator = createGenerator(4, [sticking.R,sticking.L,sticking.R,sticking.R,sticking.L,sticking.R,sticking.L,sticking.L]);
+  } else if(rudiment === 'double'){
+    generator = createGenerator(4, [sticking.R,sticking.R,sticking.L,sticking.L,sticking.R,sticking.R,sticking.L,sticking.L]);
+  } else if(rudiment === 'doubleParadidle'){
+    generator = createGenerator(6, [sticking.R,sticking.L,sticking.R,sticking.L,sticking.R,sticking.R,sticking.L,sticking.R,sticking.L,sticking.R,sticking.L,sticking.L]);
+  }
+  generateNotes(generator);
   console.log('Accents generated');
   drawNotes();
 }
 
-function paradidlesAccents(){
-  var group = 4;
+function createGenerator(group, stickingArray){
   var accentGroups = generatePermutations(group);
-
-  var generator = {
-    stickingArray:[sticking.R,sticking.L,sticking.R,sticking.R,sticking.L,sticking.R,sticking.L,sticking.L],
+  return {
+    stickingArray:stickingArray,
     generate:function(perm){
       var notes = [];
+      totalNotes:(2 ** group - 1);
       //console.log(perm);
       for(var i = 0, j = perm.length; i < perm.length; i++, j++){
         notes[i] = new Note();
         notes[i].accent = perm[i];
         notes[i].sticking = this.stickingArray[i];
-
-        notes[j] = new Note();
-        notes[j].accent = perm[i];
-        notes[j].sticking = this.stickingArray[j];
+      }
+      if(this.stickingArray.length > perm.length){
+        for(var i = 0; i < perm.length; i++){
+          var j = i + perm.length;
+          notes[j] = new Note();
+          notes[j].accent = perm[i];
+          notes[j].sticking = this.stickingArray[j];
+        }
+        this.totalNotes = this.totalNotes * 2;
       }
       return notes;
     },
-    totalNotes:(2 ** group - 1) * 2,
     permutations:accentGroups
   };
-  generateNotes(generator);
 }
 
 function generatePermutations(group){
