@@ -1,3 +1,5 @@
+'use strict';
+
 var canvas;
 var ctx;
 var canvasWidth;
@@ -16,6 +18,7 @@ var scale = {
     // usr set
     width:0,
     height:0,
+    pageHeight:0,
     paddingLeft:0,
     paddingTop:0// = 15;
   },
@@ -136,6 +139,7 @@ $(document).ready(function(){
 function change(){
   // grab values
   scale.canvas.height = parseInt($('#canvasHeight')[0].value);
+  scale.canvas.pageHeight = scale.canvas.height;
   scale.canvas.width = parseInt($('#canvasWidth')[0].value);
 
   scale.linesPerPage = parseInt($('#linesPerPage')[0].value);
@@ -160,11 +164,11 @@ function change(){
 
 function init(){
   canvas = $('#canvas')[0];
-  // canvas.width = scale.canvas.width;
-  // canvas.height = scale.canvas.length;
+  canvas.width = scale.canvas.width;
+  canvas.height = scale.canvas.height;
 
   scale.line.width  = scale.canvas.width - (2 * scale.canvas.paddingLeft);
-  scale.line.padding = ((scale.canvas.height - (2 * scale.canvas.paddingTop)) - (scale.linesPerPage * scale.line.height)) / (scale.linesPerPage -1); //(scale.canvas.height - (scale.linesPerPage * scale.line.height) - scale.line.height) / (scale.linesPerPage - 1);
+  scale.line.padding = ((scale.canvas.height - (2 * scale.canvas.paddingTop)) - (scale.linesPerPage * scale.line.height)) / scale.linesPerPage; //(scale.canvas.height - (scale.linesPerPage * scale.line.height) - scale.line.height) / (scale.linesPerPage - 1);
   scale.bar.width = scale.line.width / scale.barsPerLine;
 
   scale.note.width = scale.bar.width / NOTES_PER_BAR;
@@ -208,7 +212,7 @@ function init(){
 
   ctx = canvas.getContext('2d');
   ctx.font = "bold " + px + 'px Arial'
-  defaultPaint();
+  paintPages();
   if(bars.length > 0){
     drawNotes();
   }
@@ -216,7 +220,6 @@ function init(){
 
 function generateAccents(rudiment){
   bars = [];
-  defaultPaint();
   var generator;
   // change to switch
   if(rudiment === 'paradidle'){
@@ -311,10 +314,11 @@ function generateNotes(generator){
 }
 
 function drawNotes(){
+  paintPages();
   var x = scale.canvas.paddingLeft;
   var y = scale.canvas.paddingTop;
 
-  for(var i = 0; i < bars.length && i < scale.barsPerLine * scale.linesPerPage; ){
+  for(var i = 0; i < bars.length;){
     for(var j = 0; j < bars[i].length; j++){
       drawNote(x, y, bars[i][j]);
       x += scale.note.width;
@@ -322,7 +326,14 @@ function drawNotes(){
     i++;
     if(i % scale.barsPerLine === 0){
       x = scale.canvas.paddingLeft;
-      y = calculateNextStart(y);
+      console.log(i);
+      if(i % (scale.barsPerLine * scale.linesPerPage) == 0){
+        console.log('new page: ' + y);
+        y = i / (scale.barsPerLine * scale.linesPerPage) * scale.canvas.pageHeight + scale.canvas.paddingTop; //calculateNextStart(y, true);
+        console.log(y);
+      } else{
+        y = calculateNextStart(y);
+      }
     }
   }
 }
@@ -375,13 +386,32 @@ function drawSticking(x, y, stick){
   ctx.fillText(text, (box.left + box.right )/2, (box.top + box.bottom)/2, scale.note.width);
 }
 
-function defaultPaint(){
+function paintPages(){
+  //let pages = bars.length / scale.barsPerLine / scale.linesPerPage + 1;
+  let pages = 1;
+  while(bars.length > scale.barsPerLine * scale.linesPerPage * pages){
+    pages++;
+  }
+  canvas.height = scale.canvas.pageHeight * pages;
+  let y = 0;
+  for(var i = 0; i < pages; i++){
+    paintPage(0, y);
+    y += scale.canvas.pageHeight;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(scale.canvas.width, y);
+    ctx.stroke();
+    ctx.closePath();
+  }
+}
+
+function paintPage(x, y){
   ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(0,0,canvas.width, canvas.height);
+  ctx.fillRect(x,y, scale.canvas.width, scale.canvas.pageHeight);
   ctx.fillStyle = '#000000';
 
-  var x = scale.canvas.paddingLeft;
-  var y = scale.canvas.paddingTop;
+  var x = x + scale.canvas.paddingLeft;
+  var y = y + scale.canvas.paddingTop;
   for(var lineCount = 0; lineCount < scale.linesPerPage; lineCount++){
     drawLine(x, y);
     drawBarLines(x, y);
@@ -415,6 +445,15 @@ function drawBarLines(x, y){
   ctx.closePath();
 }
 
-function calculateNextStart(y){
-  return y + scale.line.height + scale.line.padding;
+function calculateNextStart(y, newPage){
+  if(newPage){
+    // let total = scale.canvas.pageHeight;
+    // while(total - y > scale.canvas.pageHeight){
+    //   total += scale.canvas.pageHeight;
+    // }
+    let page = Math.floor(y + scale.canvas.lineHeight / scale.canvas.pageHeight);
+    return page * scale.canvas.pageHeight + scale.canvas.paddingTop;
+  }else{
+    return y + scale.line.height + scale.line.padding;
+  }
 }
