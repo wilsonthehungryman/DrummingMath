@@ -4,6 +4,8 @@
 
 // the canvas dom object
 var canvas;
+var canvasHeight;
+var canvasWidth;
 // the canvas drawing context
 var ctx;
 // the bars array (Which contains notes)
@@ -110,6 +112,22 @@ function Note(){
 // kick off
 $(document).ready(function(){
     console.log('ok');
+    if($('#disclaimer').length === 0){
+        rewriteLinks();
+    }
+    let url = document.URL;
+    if(url.includes('index')){
+        return;
+    }else if(url.includes('accents')){
+        setActiveMenuItem('menuAccent');
+        setActiveFormTab('formAccent');
+    } else {
+        setActiveMenuItem('menuBlankManuscript');
+        setActiveFormTab('formPage');
+    }
+    canvas = $('#canvas')[0];
+    canvasHeight = $('#canvasHeight')[0];
+    canvasWidth = $('#canvasWidth')[0];
     bars = [];
     // only do stuff if there is a canvas
     if($('#canvas').length > 0){
@@ -117,13 +135,41 @@ $(document).ready(function(){
     }
 });
 
+function setActiveMenuItem(id){
+    $('#' + id).addClass('active');
+}
+
+function setActiveFormTab(id){
+    $('#' + id).addClass('active show');
+}
+
+function hideDisclaimer(){
+    $('#disclaimer')[0].style.display = 'none';
+    rewriteLinks();
+}
+
+function rewriteLinks(){
+    $('.navbar-link').each(function() {
+        console.log(this.href);
+        this.href = this.href.replace(/\?d=\d$/, '');
+        console.log("a:" + this.href);
+    });
+}
+
+function zoom(val){
+    let diff = (val === 'plus') ? 100 : -100;
+    canvasWidth.value = scale.canvas.width + diff;
+    canvasHeight.value = calcCanvasHeight(scale.canvas.width + diff);
+    change();
+}
+
 // Change captures all the values from the form.
 // when a form value is changed, this is called
 function change(){
     // grab values
-    scale.canvas.height = parseInt($('#canvasHeight')[0].value);
+    scale.canvas.height = parseInt(canvasHeight.value);
     scale.canvas.pageHeight = scale.canvas.height;
-    scale.canvas.width = parseInt($('#canvasWidth')[0].value);
+    scale.canvas.width = parseInt(canvasWidth.value);
 
     scale.linesPerPage = parseInt($('#linesPerPage')[0].value);
     scale.barsPerLine = parseInt($('#barsPerLine')[0].value);
@@ -150,7 +196,6 @@ function change(){
 // ex. the line width is the width of the page minus left and right padding
 function init(){
     // canvas resize
-    canvas = $('#canvas')[0];
     canvas.width = scale.canvas.width;
     canvas.height = scale.canvas.height;
 
@@ -264,6 +309,11 @@ function absoluteNoteBox(x, y, i){
 
 // ------------------ Accent generation ----------------------
 
+function generateAccentsClick(){
+    console.log('fired');
+    generateAccents($('#rudimentSelect')[0].value);
+}
+
 // Will generate accents for a rudiment, will be expanded to take any sticking
 function generateAccents(rudiment){
     bars = [];
@@ -281,6 +331,7 @@ function generateAccents(rudiment){
             generator = createGenerator(6, [sticking.R,sticking.L,sticking.R,sticking.L,sticking.R,sticking.R,sticking.L,sticking.R,sticking.L,sticking.R,sticking.L,sticking.L]);
             break;
         default:
+            console.log('default');
             return;
     }
 
@@ -548,4 +599,10 @@ function drawBarLines(x, y){
 
 function calculateNextStart(y){
     return y + scale.line.height + scale.line.padding;
+}
+
+function calcCanvasHeight(width){
+    // sqr root of 2
+    let r = 1.4142135623730950488016887242097;
+    return width * r;
 }

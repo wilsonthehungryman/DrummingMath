@@ -1,14 +1,12 @@
-#menu li{
-  list-style-type: none;
-  display: inline-block;
-  font-size: 2em;
-  border: 2em black single;
-}
-
 body {
-  background-color: hsla(140, 5%, 64%, 0.56);
+    background-color: hsla(140, 5%, 64%, 0.56);
 }
 
 #canvas {
-  display: block;
+    display: block;
+    border: 2px solid black;
+}
+
+.menu_item {
+    margin-left: 15px;
 }
