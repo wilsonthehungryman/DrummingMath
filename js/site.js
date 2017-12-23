@@ -6,6 +6,13 @@
 var canvas;
 var canvasHeight;
 var canvasWidth;
+
+var rudimentSelect;
+var stickingPreview;
+var customSticking;
+var leftLead;
+var appendReverse;
+var customGroup;
 // the canvas drawing context
 var ctx;
 // the bars array (Which contains notes)
@@ -121,6 +128,13 @@ $(document).ready(function(){
     }else if(url.includes('accents')){
         setActiveMenuItem('menuAccent');
         setActiveFormTab('formAccent');
+        rudimentSelect = $('#rudimentSelect')[0];
+        stickingPreview = $('#stickingPreview')[0];
+        customSticking = $('#custom')[0];
+        leftLead = $('#leftLead')[0];
+        appendReverse = $('#andReverse')[0];
+        customGroup = $('#customStickingGroup')[0];
+        rudimentSelected();
     } else {
         setActiveMenuItem('menuBlankManuscript');
         setActiveFormTab('formPage');
@@ -154,6 +168,46 @@ function rewriteLinks(){
         this.href = this.href.replace(/\?d=\d$/, '');
         console.log("a:" + this.href);
     });
+}
+
+function rudimentSelected(){
+    let val = rudimentSelect.value;
+    if(val === 'custom'){
+        customGroup.style.display = 'block';
+        customStickingChange();
+    } else {
+        customGroup.style.display = 'none';
+        switch(val) {
+            case 'paradidle':
+                updatePreview('RLRR');
+                break;
+            case 'double':
+                updatePreview('RRLL');
+                break;
+            case 'doubleParadidle':
+                updatePreview('RLRLRR');
+                break;
+        }
+    }
+}
+
+function customStickingChange(){
+    customSticking.value = customSticking.value.replace(/[^LlrR]/g, '').toUpperCase();
+    updatePreview(customSticking.value);
+}
+
+function updatePreview(sticking){
+    if(appendReverse.checked){
+        sticking += reverseSticking(sticking);
+    }
+    if(leftLead.checked){
+        sticking = reverseSticking(sticking)
+    }
+    stickingPreview.value = sticking;
+}
+
+function reverseSticking(sticking){
+    return sticking.replace(/R/g, 'l').replace(/L/g, 'R').toUpperCase();
 }
 
 function zoom(val){
@@ -310,7 +364,6 @@ function absoluteNoteBox(x, y, i){
 // ------------------ Accent generation ----------------------
 
 function generateAccentsClick(){
-    console.log('fired');
     generateAccents($('#rudimentSelect')[0].value);
 }
 
@@ -318,26 +371,22 @@ function generateAccentsClick(){
 function generateAccents(rudiment){
     bars = [];
     let generator;
-
-    // create a generator based on the rudiment
-    switch(rudiment){
-        case 'paradidle':
-            generator = createGenerator(4, [sticking.R,sticking.L,sticking.R,sticking.R,sticking.L,sticking.R,sticking.L,sticking.L]);
-            break;
-        case 'double':
-            generator = createGenerator(4, [sticking.R,sticking.R,sticking.L,sticking.L,sticking.R,sticking.R,sticking.L,sticking.L]);
-            break;
-        case 'doubleParadidle':
-            generator = createGenerator(6, [sticking.R,sticking.L,sticking.R,sticking.L,sticking.R,sticking.R,sticking.L,sticking.R,sticking.L,sticking.R,sticking.L,sticking.L]);
-            break;
-        default:
-            console.log('default');
-            return;
-    }
+    let sticking = stickingPreview.value;
+    let length = (appendReverse.checked) ? sticking.length / 2 : sticking.length;
+    generator = createGenerator(length, toStickingArray(sticking));
 
     // generate the actual notes
     generateNotes(generator);
     drawNotes();
+}
+
+function toStickingArray(source){
+    let result = [];
+    let l = source.length;
+    for(let i = 0; i < l; i++){
+        result.push(sticking[source.charAt(i)]);
+    }
+    return result;
 }
 
 // Generator generator, it generates generation, uses generation to generate help in generation
